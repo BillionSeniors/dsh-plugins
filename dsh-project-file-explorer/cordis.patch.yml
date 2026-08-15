@@ -1,0 +1,13 @@
+# ~/.dsh/profiles/web/cordis.patch.yml 追加内容示例
+#
+# dsh-project-file-explorer 插件通过 loader patch 注册：
+# 把下面的内容追加到你的 cordis.patch.yml（保持 YAML 顶层数组缩进一致），
+# 然后重启 `dsh web` 即可加载插件。
+#
+# 注意：
+#   1. 插件本体需已复制到 ~/.dsh/profiles/node_modules/@local/dsh-project-file-explorer/
+#   2. 完整效果（未分组删除 / 响应式抽屉）还需运行 `npm run patch` 应用 harness 补丁
+
+- insert:
+    - id: project-file-explorer
+      name: '@local/dsh-project-file-explorer'
