@@ -228,3 +228,7 @@ dsh 版本升级改变了源码。补丁脚本会明确提示哪一处失败，�
 ## License
 
 [MIT](LICENSE)
+
+---
+
+内置**图片识别**功能原作者：**[ysr666](https://github.com/ysr666)**（[dsh-vision-router](https://github.com/ysr666/dsh-vision-router)，[MIT](vendor/dsh-vision-router/LICENSE) 协议）。亿哲学长在原作者基础上进行集成与定制，原版权声明完整保留。
