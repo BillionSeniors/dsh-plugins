@@ -17,6 +17,15 @@
 >
 > 安装：`dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
+> **🧩 模型页企业级编辑器（核心补丁，可选）**：插件附带 `scripts/patch-harness.mjs`，可把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（直连提供方 / 服务商预设 / API Key 直填）。安装后执行一次：
+>
+> ```sh
+> cd <插件目录>        # 通常位于 ~/.dsh/profiles/<profile>/node_modules/dsh-vision-router
+> node scripts/patch-harness.mjs
+> ```
+>
+> 脚本自动发现本机 Web / 桌面端所有部署，仅对与发布基线一致（0.1.0-rc.6）的核心打补丁，打前自动备份原文件（`client.js.orig-bak`），版本不匹配自动跳过、绝不破坏安装。`node scripts/patch-harness.mjs --check` 查看状态；DSH 升级覆盖核心后重跑一次即可。
+>
 > 🔒 **隐私说明**：本仓库**不包含任何 API Key**。视觉后端 Key 有两种配置方式：在设置卡片的「HTTP 提供方（API Key 直填）」里直接粘贴保存（推荐，v1.3.0+），或通过**本机环境变量**配置（如 `ZHIPU_API_KEY` / `ARK_API_KEY`）；均不会随仓库分发。
 
 <h1 align="center">dsh-vision-router</h1>

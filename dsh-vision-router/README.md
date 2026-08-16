@@ -17,6 +17,15 @@
 >
 > Install: `dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
+> **🧩 Enterprise Models-page editor (optional core patch)**: the plugin ships `scripts/patch-harness.mjs`, which upgrades Settings → Models → Vision Router → Edit into a grouped card-style enterprise UI (direct providers / presets / paste-to-save API key). After installing, run once:
+>
+> ```sh
+> cd <plugin dir>       # usually ~/.dsh/profiles/<profile>/node_modules/dsh-vision-router
+> node scripts/patch-harness.mjs
+> ```
+>
+> It auto-discovers every local deployment (Web / Desktop), only patches cores that match the released baseline (0.1.0-rc.6), backs up the original first (`client.js.orig-bak`), and skips mismatched versions without breaking anything. Use `node scripts/patch-harness.mjs --check` to inspect; re-run after a DSH upgrade overwrites the core.
+>
 > 🔒 **Privacy**: this repository contains **no API keys**. Vision keys can be configured two ways: paste them directly in the settings card's “HTTP providers (paste API key)” editor (recommended, v1.3.0+), or via **local environment variables** (e.g. `ZHIPU_API_KEY` / `ARK_API_KEY`); neither is ever distributed with the repo.
 
 <h1 align="center">dsh-vision-router</h1>

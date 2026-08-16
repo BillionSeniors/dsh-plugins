@@ -1,4 +1,4 @@
-# DeepSeek Harness 插件合集（by 亿哲学长）
+﻿# DeepSeek Harness 插件合集（by 亿哲学长）
 
 > 🔒 **隐私声明：本仓库不含任何 API Key。** 视觉后端 Key 一律通过界面「API Key 直填」粘贴配置（v1.3.0+），只保存在本机 `data/settings.yaml`，不会写入插件、不会随仓库分发、不记录日志。上传前请再次确认没有把密钥写进任何文件。
 
@@ -32,6 +32,15 @@ dsh plugin add github:BillionSeniors/dsh-plugins/dsh-vision-router
 
 装完后重启 `dsh web`：粘贴图片 → 聊天模型选择器选带「自动识图」的组 → 发送即可。
 
+> 🧩 **模型页企业级编辑器（核心补丁，可选）**：vision-router 附带 `scripts/patch-harness.mjs`，把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（直连提供方 / 服务商预设 / API Key 直填）。安装后执行：
+>
+> ```sh
+> cd <插件目录>
+> node scripts/patch-harness.mjs      # --check 可先检查状态
+> ```
+>
+> 只对发布基线一致（0.1.0-rc.6）的核心打补丁，自动备份原文件，版本不匹配自动跳过。
+
 ## 🔑 视觉后端 Key 配置（只在本机，不入库）
 
 v1.3.0 起支持**界面直填 Key**，无需再设置环境变量：
@@ -64,3 +73,4 @@ v1.3.0 起支持**界面直填 Key**，无需再设置环境变量：
 
 - `dsh-project-file-explorer`：MIT（亿哲学长）
 - `dsh-vision-router`：MIT（**原作者 ysr666**，版权声明见其 LICENSE，再发布 / 定制时保留）
+
