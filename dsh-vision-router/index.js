@@ -33,6 +33,7 @@ import { appendPromptToImageOnlyMessage, fetchWithOpenAICompatibility } from './
 import { createCachedUpdateChecker } from './lib/update-check.js'
 import { detectDshSelfUpdatePlan, runDshPluginUpdate } from './lib/self-update.js'
 import { randomBytes } from 'node:crypto'
+import { autoApplyCorePatch } from './lib/auto-patch.js'
 
 export const name = 'vision-router'
 export const inject = ['tools', 'llm']
@@ -1717,6 +1718,18 @@ export function modelInfoAcceptsImages(info) {
 }
 
 export function apply(ctx, config = {}) {
+  // 模型页「企业级编辑器」核心补丁：插件加载时自动应用（幂等，只打已发布
+  // 基线，任何失败都只记日志）。这样在任何机器上安装插件后无需手动执行
+  // node scripts/patch-harness.mjs —— 模型页补丁随插件自动就位。
+  setImmediate(() => {
+    try {
+      autoApplyCorePatch((msg) => {
+        try { ctx.logger('vision-router').info(msg) } catch { /* fallthrough */ }
+      })
+    } catch (err) {
+      try { ctx.logger('vision-router').warn(`自动补丁异常：${err?.message || err}`) } catch { /* fallthrough */ }
+    }
+  })
   // Live configuration: composition entry at boot, then the resolved settings
   // section once the settings service mounts (installSettingsSection below).
   let current = () => config

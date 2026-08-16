@@ -17,14 +17,19 @@
 >
 > Install: `dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
-> **🧩 Enterprise Models-page editor (optional core patch)**: the plugin ships `scripts/patch-harness.mjs`, which upgrades Settings → Models → Vision Router → Edit into a grouped card-style enterprise UI (direct providers / presets / paste-to-save API key). After installing, run once:
+> **🧩 Enterprise Models-page editor (core patch, fully automatic in v1.3.3+)**: the plugin upgrades Settings → Models → Vision Router → Edit into a grouped card-style enterprise UI (direct providers / presets / paste-to-save API key). **The plugin detects and applies the patch automatically when it loads** — install with `dsh plugin add`, restart DSH (or refresh the page), and the new editor is already there. No manual commands.
+>
+> Auto-apply is idempotent and safe: it only touches cores that match the released baseline byte-for-byte (0.1.0-rc.6), backs up the original first (`client.js.orig-bak`), and skips mismatched versions without breaking anything. If a DSH upgrade overwrites the core, the next plugin load re-applies it.
+>
+> Manual commands remain available for inspection / re-application:
 >
 > ```sh
 > cd <plugin dir>       # usually ~/.dsh/profiles/<profile>/node_modules/dsh-vision-router
-> node scripts/patch-harness.mjs
+> node scripts/patch-harness.mjs            # apply now
+> node scripts/patch-harness.mjs --check    # inspect patch status per deployment
 > ```
 >
-> It auto-discovers every local deployment (Web / Desktop), only patches cores that match the released baseline (0.1.0-rc.6), backs up the original first (`client.js.orig-bak`), and skips mismatched versions without breaking anything. Use `node scripts/patch-harness.mjs --check` to inspect; re-run after a DSH upgrade overwrites the core.
+> Note: some pnpm install flows block dependency build scripts — that does not affect this plugin, because the patch is applied at **plugin load time** (not via an install script); the `install` script in package.json is only extra insurance for npm-based installs.
 >
 > 🔒 **Privacy**: this repository contains **no API keys**. Vision keys can be configured two ways: paste them directly in the settings card's “HTTP providers (paste API key)” editor (recommended, v1.3.0+), or via **local environment variables** (e.g. `ZHIPU_API_KEY` / `ARK_API_KEY`); neither is ever distributed with the repo.
 

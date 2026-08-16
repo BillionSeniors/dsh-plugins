@@ -1,4 +1,4 @@
-﻿# DeepSeek Harness 插件合集（by 亿哲学长）
+# DeepSeek Harness 插件合集（by 亿哲学长）
 
 > 🔒 **隐私声明：本仓库不含任何 API Key。** 视觉后端 Key 一律通过界面「API Key 直填」粘贴配置（v1.3.0+），只保存在本机 `data/settings.yaml`，不会写入插件、不会随仓库分发、不记录日志。上传前请再次确认没有把密钥写进任何文件。
 
@@ -32,14 +32,9 @@ dsh plugin add github:BillionSeniors/dsh-plugins/dsh-vision-router
 
 装完后重启 `dsh web`：粘贴图片 → 聊天模型选择器选带「自动识图」的组 → 发送即可。
 
-> 🧩 **模型页企业级编辑器（核心补丁，可选）**：vision-router 附带 `scripts/patch-harness.mjs`，把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（直连提供方 / 服务商预设 / API Key 直填）。安装后执行：
+> 🧩 **模型页企业级编辑器（核心补丁，v1.3.3+ 全自动）**：vision-router 把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（直连提供方 / 服务商预设 / API Key 直填）。**插件加载时自动检测并应用补丁**——`dsh plugin add` 安装后重启 DSH（或刷新页面）即可，无需任何手动命令。
 >
-> ```sh
-> cd <插件目录>
-> node scripts/patch-harness.mjs      # --check 可先检查状态
-> ```
->
-> 只对发布基线一致（0.1.0-rc.6）的核心打补丁，自动备份原文件，版本不匹配自动跳过。
+> 自动应用只对发布基线一致（0.1.0-rc.6）的核心打补丁，打前自动备份原文件（`client.js.orig-bak`），版本不匹配自动跳过、绝不破坏安装；DSH 升级覆盖核心后，下次加载自动重新打上。手动命令仍可用：`node scripts/patch-harness.mjs`（应用）/ `--check`（查看状态）。
 
 ## 🔑 视觉后端 Key 配置（只在本机，不入库）
 

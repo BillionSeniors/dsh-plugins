@@ -17,14 +17,19 @@
 >
 > 安装：`dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
-> **🧩 模型页企业级编辑器（核心补丁，可选）**：插件附带 `scripts/patch-harness.mjs`，可把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（直连提供方 / 服务商预设 / API Key 直填）。安装后执行一次：
+> **🧩 模型页企业级编辑器（核心补丁，v1.3.3+ 全自动）**：插件把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（直连提供方 / 服务商预设 / API Key 直填）。**插件一加载就会自动检测并应用补丁**——装完即生效，无需任何手动命令；`dsh plugin add` 之后重启一次 DSH（或刷新页面）即可看到新界面。
+>
+> 自动应用是幂等且安全的：只处理与发布基线逐字节一致（0.1.0-rc.6）的核心，打前自动备份原文件（`client.js.orig-bak`），版本不匹配自动跳过、绝不破坏安装；补丁已存在则直接跳过。DSH 升级覆盖核心后，插件下次加载会自动重新打上。
+>
+> 仍可手动执行（查看状态 / 补打）：
 >
 > ```sh
 > cd <插件目录>        # 通常位于 ~/.dsh/profiles/<profile>/node_modules/dsh-vision-router
-> node scripts/patch-harness.mjs
+> node scripts/patch-harness.mjs            # 手动打补丁
+> node scripts/patch-harness.mjs --check    # 查看各部署补丁状态
 > ```
 >
-> 脚本自动发现本机 Web / 桌面端所有部署，仅对与发布基线一致（0.1.0-rc.6）的核心打补丁，打前自动备份原文件（`client.js.orig-bak`），版本不匹配自动跳过、绝不破坏安装。`node scripts/patch-harness.mjs --check` 查看状态；DSH 升级覆盖核心后重跑一次即可。
+> 补充说明：部分 pnpm 安装方式会拦截依赖的构建脚本——不影响本插件，因为补丁在**插件加载时**自动应用（不依赖安装脚本）；`package.json` 里的 `install` 脚本只是 npm 场景下的额外保险。
 >
 > 🔒 **隐私说明**：本仓库**不包含任何 API Key**。视觉后端 Key 有两种配置方式：在设置卡片的「HTTP 提供方（API Key 直填）」里直接粘贴保存（推荐，v1.3.0+），或通过**本机环境变量**配置（如 `ZHIPU_API_KEY` / `ARK_API_KEY`）；均不会随仓库分发。
 
