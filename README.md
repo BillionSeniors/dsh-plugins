@@ -26,6 +26,10 @@
 
 ## 🚀 安装
 
+DeepSeek Harness（dsh）界面总览：
+
+![DeepSeek Harness 界面总览](assets/dsh-welcome.png)
+
 ```bash
 # ① 文件浏览器（亿哲学长原创）
 dsh plugin add github:BillionSeniors/dsh-plugins/dsh-project-file-explorer
@@ -34,11 +38,21 @@ dsh plugin add github:BillionSeniors/dsh-plugins/dsh-project-file-explorer
 dsh plugin add github:BillionSeniors/dsh-plugins/dsh-vision-router
 ```
 
-装完后重启 `dsh web`：粘贴图片 → 聊天模型选择器选带「+ 自动识图」的组（如 `DeepSeek + 自动识图`）→ 发送即可。
+装完后重启 `dsh web`，屏幕右缘出现**项目文件树**（文件浏览器插件）：
+
+![项目文件树（文件浏览器）](assets/file-explorer-tree.png)
+
+粘贴图片 → 聊天模型选择器选带「+ 自动识图」的组（如 `DeepSeek + 自动识图`）→ 发送即可：
+
+![聊天使用效果](assets/chat-usage.png)
 
 > 🧩 **模型页企业级编辑器（核心补丁，v1.3.3+ 全自动）**：vision-router 把「设置 → 模型 → 视觉路由 → 编辑」升级为分组卡片式企业界面（顶部「HTTP 提供方（API Key 直填）」+ 服务商预设 + 其余配置折叠收纳）。**插件加载时自动检测并应用补丁**——`dsh plugin add` 安装后重启 DSH（或刷新页面）即可，无需任何手动命令。
 >
 > 自动应用只对发布基线一致（0.1.0-rc.6）的核心打补丁，打前自动备份原文件（`client.js.orig-bak`），版本不匹配自动跳过、绝不破坏安装；DSH 升级覆盖核心后，下次加载自动重新打上。手动命令仍可用：`node scripts/patch-harness.mjs`（应用）/ `--check`（查看状态）。
+
+实际效果（设置 → 模型 → 视觉路由（自动识图）→ 编辑）：
+
+![模型页企业级编辑器](assets/models-enterprise-editor.png)
 
 ## 🔑 视觉后端 Key 配置（只在本机，不入库）
 
@@ -55,6 +69,7 @@ v1.3.0 起支持**界面直填 Key**，无需再设置环境变量：
 
 ```
 ├── README.md                        # 本文件（总览 + 归属 + 隐私声明）
+├── assets/                          # 界面截图（README 配图）
 ├── dsh-project-file-explorer/       # 亿哲学长原创：项目文件浏览器
 │   ├── lib/                         #   host 端 + 浏览器端
 │   ├── scripts/                     #   一键安装 / 补丁脚本
