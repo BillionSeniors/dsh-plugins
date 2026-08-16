@@ -29,7 +29,9 @@ const PATCHED = join(ROOT, 'patches', 'dsh-client-ui-settings-models.client.js')
 // 原始（未补丁）基线：发布时对应 @deepseek-ai/dsh-client-ui-settings-models 0.1.0-rc.6
 const BASELINE_ORIG = '801c380dc7904d30e3ba94a0cb8e4759'
 // 补丁文件自身哈希：已打过补丁的部署直接跳过
-const PATCHED_HASH = '06b8fc14bae827ddbb07aeecb6fd584d'
+const PATCHED_HASH = '6203dc329f01b63656c1c6e7eff6e00b'
+// 历史补丁哈希：匹配到旧补丁的部署也应升级到当前补丁（覆盖写入）
+const OLD_PATCHED_HASHES = ['06b8fc14bae827ddbb07aeecb6fd584d']
 
 const flag = (name) => {
   const i = process.argv.indexOf(name)
@@ -81,6 +83,7 @@ function statusOf(file) {
   if (!existsSync(file)) return null
   const h = md5(readFileSync(file))
   if (h === PATCHED_HASH) return 'patched'
+  if (OLD_PATCHED_HASHES.includes(h)) return 'old-patched'
   if (h === BASELINE_ORIG) return 'original'
   return 'unknown'
 }
@@ -95,7 +98,7 @@ function patchFile(file) {
     copyFileSync(file, backup)
   }
   writeFileSync(file, readFileSync(PATCHED))
-  return { file, result: 'patched' }
+  return { file, result: status === 'old-patched' ? 'upgraded' : 'patched' }
 }
 
 const only = flag('--target')
@@ -115,9 +118,10 @@ if (targets.length === 0) {
 let changed = 0
 for (const file of targets) {
   const out = checkOnly ? { file, result: statusOf(file) ?? 'missing' } : patchFile(file)
-  if (out.result === 'patched') changed++
+  if (out.result === 'patched' || out.result === 'upgraded') changed++
   const label = {
     patched: '✅ 已打补丁',
+    upgraded: '🔄 已从旧补丁升级',
     'already-patched': '⏭ 已是补丁版（跳过）',
     original: '🟡 原始版（待打补丁）',
     'version-mismatch': '⚠️ 版本与补丁基线不一致（跳过，避免破坏）',

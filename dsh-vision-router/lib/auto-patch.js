@@ -25,7 +25,9 @@ const PATCHED = join(ROOT, 'patches', 'dsh-client-ui-settings-models.client.js')
 // 原始（未补丁）基线：发布时对应 @deepseek-ai/dsh-client-ui-settings-models 0.1.0-rc.6
 const BASELINE_ORIG = '801c380dc7904d30e3ba94a0cb8e4759'
 // 补丁文件自身哈希：已打过补丁的部署直接跳过
-const PATCHED_HASH = '06b8fc14bae827ddbb07aeecb6fd584d'
+const PATCHED_HASH = '6203dc329f01b63656c1c6e7eff6e00b'
+// 历史补丁哈希：匹配到旧补丁的部署也应升级到当前补丁（覆盖写入）
+const OLD_PATCHED_HASHES = ['06b8fc14bae827ddbb07aeecb6fd584d']
 
 const md5 = (buf) => createHash('md5').update(buf).digest('hex')
 
@@ -34,6 +36,7 @@ function statusOf(file) {
   if (!existsSync(file)) return null
   const h = md5(readFileSync(file))
   if (h === PATCHED_HASH) return 'patched'
+  if (OLD_PATCHED_HASHES.includes(h)) return 'old-patched'
   if (h === BASELINE_ORIG) return 'original'
   return 'unknown'
 }
@@ -94,7 +97,9 @@ export function autoApplyCorePatch(log) {
       if (!existsSync(backup)) copyFileSync(file, backup)
       writeFileSync(file, readFileSync(PATCHED))
       changed++
-      say(`[vision-router] 已自动应用「模型页企业级编辑器」补丁 → ${file}`)
+      say(status === 'old-patched'
+        ? `[vision-router] 已把旧补丁升级为最新版 → ${file}`
+        : `[vision-router] 已自动应用「模型页企业级编辑器」补丁 → ${file}`)
     } catch (err) {
       say(`[vision-router] 自动补丁失败：${file} — ${err?.message || err}`)
     }

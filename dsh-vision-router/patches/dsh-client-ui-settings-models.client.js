@@ -1518,7 +1518,35 @@ window.__ModuleLoader__.load({
 			*/
 			const applyOnce = async () => {
 				const ns = namespace.ns;
-				const next = layout === "pi-ai" && stringAt(draft, "apiKeyEnv") === void 0 && stringAt(fallback, "apiKeyEnv") === void 0 && keyValue.length > 0 ? (0, _deepseek_ai_dsh_client_schema_form.setPath)(draft, ["apiKeyEnv"], keyRef) : draft;
+				let next = layout === "pi-ai" && stringAt(draft, "apiKeyEnv") === void 0 && stringAt(fallback, "apiKeyEnv") === void 0 && keyValue.length > 0 ? (0, _deepseek_ai_dsh_client_schema_form.setPath)(draft, ["apiKeyEnv"], keyRef) : draft;
+				// v1.3.4: object-array rows (e.g. vision-router's httpProviders) are
+				// persisted as a wholesale array. A row whose user layer never
+				// touched some fields would otherwise be saved without them —
+				// baseURL/model missing means the backend is filtered out at runtime
+				// and the UI silently falls back to the free OVH chain. Fill every
+				// row's missing/blank fields from the merged fallback / base /
+				// schema-default values, so what the editor shows is what gets saved.
+				if (editorLayout === "settings" && node !== void 0 && node.type === "object" && node.dict && typeof next === "object" && next !== null && !Array.isArray(next)) {
+					for (const [fname, fnode] of Object.entries(node.dict)) {
+						if (fnode.type !== "array" || fnode.inner === void 0 || fnode.inner.type !== "object" || fnode.inner.dict === void 0) continue;
+						const rows = Array.isArray(next[fname]) ? next[fname] : [];
+						if (rows.length === 0) continue;
+						const filled = rows.map((row, index) => {
+							if (typeof row !== "object" || row === null) return row;
+							const out = { ...row };
+							for (const [field, sf] of Object.entries(fnode.inner.dict)) {
+								const cur = out[field];
+								if (cur !== void 0 && cur !== "") continue;
+								let fill = (0, _deepseek_ai_dsh_client_schema_form.getPath)(fallback, [fname, index, field]);
+								if (fill === void 0) fill = (0, _deepseek_ai_dsh_client_schema_form.getPath)(namespace.base, [...settingsPath, fname, index, field]);
+								if (fill === void 0 && sf.meta && sf.meta.default !== void 0) fill = sf.meta.default;
+								if (fill !== void 0) out[field] = fill;
+							}
+							return out;
+						});
+						next = (0, _deepseek_ai_dsh_client_schema_form.setPath)(next, [fname], filled);
+					}
+				}
 				if (props.credentialOnly !== true) {
 					const failure = validateDeepSeekModels((0, _deepseek_ai_dsh_client_schema_form.getPath)(next, ["models"]));
 					/* v8 ignore next 3 -- unreachable from the card: the same failure disables submit */

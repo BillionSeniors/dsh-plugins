@@ -17,9 +17,9 @@
 >
 > Install: `dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
-> **🧩 Enterprise Models-page editor (core patch, fully automatic in v1.3.3+)**: the plugin upgrades Settings → Models → Vision Router → Edit into a grouped card-style enterprise UI (direct providers / presets / paste-to-save API key). **The plugin detects and applies the patch automatically when it loads** — install with `dsh plugin add`, restart DSH (or refresh the page), and the new editor is already there. No manual commands.
+> **🧩 Enterprise Models-page editor (core patch, fully automatic in v1.3.4+)**: the plugin upgrades Settings → Models → Vision Router → Edit into a grouped card-style enterprise UI (direct providers / presets / paste-to-save API key). **The plugin detects and applies the patch automatically when it loads** — install with `dsh plugin add`, restart DSH (or refresh the page), and the new editor is already there. No manual commands.
 >
-> Auto-apply is idempotent and safe: it only touches cores that match the released baseline byte-for-byte (0.1.0-rc.6), backs up the original first (`client.js.orig-bak`), and skips mismatched versions without breaking anything. If a DSH upgrade overwrites the core, the next plugin load re-applies it.
+> Since v1.3.4 the editor **fills missing fields of HTTP-provider rows on save** (name / baseURL / model are completed from the underlying values), so pasting only the API key can no longer persist an incomplete row; older patch versions auto-upgrade on load. Auto-apply is idempotent and safe: it only touches cores that match the released baseline byte-for-byte (0.1.0-rc.6), backs up the original first (`client.js.orig-bak`), and skips mismatched versions without breaking anything. If a DSH upgrade overwrites the core, the next plugin load re-applies it.
 >
 > Manual commands remain available for inspection / re-application:
 >
