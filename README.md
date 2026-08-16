@@ -1,8 +1,8 @@
 # DeepSeek Harness 插件合集（by 亿哲学长）
 
-> 🔒 **隐私声明：本仓库不含任何 API Key。** 所有密钥只保存在你**本机**（如 `dsh.bat` / `start-web.cmd` 里的环境变量），随仓库分发的只有代码与文档。上传前请再次确认没有把密钥写进任何文件。
+> 🔒 **隐私声明：本仓库不含任何 API Key。** 所有密钥只保存在你**本机**（如 `launcher/启动DeepSeek.bat` 里的环境变量）；仓库内启动脚本中的 Key 均为**占位符**，请自行填写后使用。上传前请再次确认没有把密钥写进任何文件。
 
-本仓库包含两个可在 DeepSeek Harness（dsh）上使用的插件：
+本仓库包含两个可在 DeepSeek Harness（dsh）上使用的插件，以及一套启动 / 停止脚本：
 
 ## 📁 插件列表
 
@@ -31,6 +31,14 @@ dsh plugin add github:BillionSeniors/dsh-vision-router
 ```
 
 装完后重启 `dsh web`：粘贴图片 → 聊天模型选择器选带「自动识图」的组 → 发送即可。
+
+## 🚀 启动 / 停止脚本（`launcher/`）
+
+- `启动DeepSeek.bat`：一键启动 dsh（自动检测端口 3080，已在运行则直接打开浏览器）
+- `停止DeepSeek.bat`：停止 dsh 服务
+- `启动 DeepSeek Harness.lnk` / `停止 DeepSeek Harness.lnk`：快捷方式示例（指向上面两个脚本，请按本机路径重建）
+
+> ⚠️ `启动DeepSeek.bat` 中的 `ARK_API_KEY` / `ZHIPU_API_KEY` 已替换为**占位符**，请在本机填写你自己的 Key 再使用，切勿把真实 Key 上传。
 
 ## 🔑 视觉后端 Key 配置（只在本机，不入库）
 
@@ -63,11 +71,16 @@ dsh plugin add github:BillionSeniors/dsh-vision-router
 │   ├── scripts/                     #   一键安装 / 补丁脚本
 │   ├── example/                     #   cordis.patch.yml 示例
 │   └── ...
-└── dsh-vision-router/               # ysr666 原创（MIT）+ 亿哲学长定制：图片识别
-    ├── index.js                     #   host 端（含"显示当前识图 AI"增强）
-    ├── lib/                         #   浏览器端 + 工具
-    ├── LICENSE                      #   MIT（原作者版权，不可移除）
-    └── ...
+├── dsh-vision-router/               # ysr666 原创（MIT）+ 亿哲学长定制：图片识别
+│   ├── index.js                     #   host 端（含"显示当前识图 AI"增强）
+│   ├── lib/                         #   浏览器端 + 工具
+│   ├── LICENSE                      #   MIT（原作者版权，不可移除）
+│   └── ...
+└── launcher/                        # 启动 / 停止脚本（Key 为占位符，自行填写）
+    ├── 启动DeepSeek.bat
+    ├── 停止DeepSeek.bat
+    ├── 启动 DeepSeek Harness.lnk
+    └── 停止 DeepSeek Harness.lnk
 ```
 
 ## ⚖️ 许可
