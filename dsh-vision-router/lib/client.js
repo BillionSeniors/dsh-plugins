@@ -206,6 +206,9 @@ window.__ModuleLoader__.load({
       httpPresetDashScope: '阿里云百炼（通义 VL）',
       httpPresetSiliconFlow: 'SiliconFlow',
       httpPresetOpenRouter: 'OpenRouter',
+      currentBackendLabel: '当前识图 AI',
+      currentBackendHint: '配置请到「设置 → 模型」→ 视觉路由（自动识图）→ 编辑；此处仅展示当前使用的视觉后端。',
+      freeBackendLabel: '内置免费链（OVH）',
     }
     const en = {
       nav: 'Vision Router (auto image understanding)',
@@ -401,6 +404,9 @@ window.__ModuleLoader__.load({
       httpPresetDashScope: 'Alibaba DashScope (Qwen VL)',
       httpPresetSiliconFlow: 'SiliconFlow',
       httpPresetOpenRouter: 'OpenRouter',
+      currentBackendLabel: 'Active vision AI',
+      currentBackendHint: 'Configure it under Settings → Models → Vision Router → Edit; this line only shows the current vision backend.',
+      freeBackendLabel: 'Built-in free chain (OVH)',
     }
 
     /**
@@ -1781,13 +1787,33 @@ window.__ModuleLoader__.load({
         return h('p', { className: 'vr-hint vr-stealth-notice' }, t('stealthOfficialDeadHint'))
       }
 
+      // 当前识图 AI（仅展示；配置入口在 设置 → 模型 → 视觉路由 → 编辑）
+      const backendStatus = () => {
+        const hps = readValue(snapshot, 'httpProviders')
+        const list = Array.isArray(hps)
+          ? hps.filter((p) => p && typeof p.baseURL === 'string' && typeof p.model === 'string')
+          : []
+        if (list.length === 0) return t('freeBackendLabel') || '内置免费链（OVH）'
+        const p = list[0]
+        const u = String(p.baseURL || '').toLowerCase()
+        let vendor = ''
+        if (u.includes('bigmodel.cn')) vendor = '智谱'
+        else if (u.includes('volces.com')) vendor = '豆包'
+        else if (u.includes('generativelanguage.googleapis.com')) vendor = 'Gemini'
+        else if (u.includes('openai.com')) vendor = 'OpenAI'
+        else if (u.includes('anthropic.com')) vendor = 'Anthropic'
+        else if (u.includes('moonshot')) vendor = 'Kimi'
+        else if (u.includes('dashscope') || u.includes('aliyuncs.com')) vendor = '通义'
+        else if (u.includes('deepseek.com')) vendor = 'DeepSeek'
+        else if (u.includes('ovh.net')) vendor = 'OVH'
+        return (vendor + ' ' + p.model).trim()
+      }
+
       return h('li', { className: 'vr-card' + (open ? ' vr-card-open' : '') },
         h('button', {
           type: 'button', className: 'vr-header', 'aria-expanded': open,
           onClick: () => {
             if (!open) {
-              loadCatalog()
-              loadVisionCapabilities()
               runUpdateCheck(false)
             }
             setOpen(!open)
@@ -1797,105 +1823,20 @@ window.__ModuleLoader__.load({
             h('span', { className: 'vr-name' }, t('nav')),
             h('span', { className: 'vr-desc' }, t('desc')),
           ),
-          dirty ? h('span', { className: 'vr-pending' }, t('pending')) : null,
           h('span', { className: 'vr-chevron' + (open ? ' vr-chevron-open' : '') }, '▾'),
         ),
         open
           ? h('div', { className: 'vr-body' },
               !writable ? h('p', { className: 'vr-readOnly' }, t('readOnly')) : null,
-              h('div', { className: 'vr-quickstart' },
-                h('div', { className: 'vr-quickstart-title' }, t('quickStartTitle')),
-                h('p', { className: 'vr-quickstart-body' }, t('quickStartBody')),
-                h('p', { className: 'vr-quickstart-live' }, t('quickStartLive')),
-                h('div', { className: 'vr-quickstart-actions' },
-                  h('button', {
-                    type: 'button', className: 'vr-btn',
-                    onClick: () => startVisionSettingsGuide(t),
-                  }, t('quickStartGuide')),
+              h('div', { className: 'vr-field' },
+                h('div', { className: 'vr-field-head' },
+                  h('span', { className: 'vr-label' }, t('currentBackendLabel')),
+                  h('span', { className: 'vr-badge' }, backendStatus()),
                 ),
+                h('p', { className: 'vr-hint' }, t('currentBackendHint')),
               ),
               updatePanel(),
-              TOGGLE_KEYS.map((key) => toggleField(key)),
               stealthNotice(),
-              h('div', { className: 'vr-group' },
-                h('p', { className: 'vr-group-title' }, t('groupWrappers')),
-                catalogReady
-                  ? wrappersEditor()
-                  : textField('wrappedProviders', t('textWrappedProviders'), t('textHintWrappedProviders'), true),
-              ),
-              h('p', { className: 'vr-hint' }, t('defaultChainNote')),
-              visionCaps.status === 'loading'
-                ? h('p', { className: 'vr-hint' }, t('visionCapsLoading'))
-                : visionCaps.status === 'error'
-                  ? h('p', { className: 'vr-hint vr-stealth-notice' }, t('visionCapsError'))
-                  : visionCaps.status === 'ready'
-                    ? h('p', { className: 'vr-hint' }, t('visionCapsFiltered'))
-                    : null,
-              catalogReady
-                ? chainEditor()
-                : h('div', {
-                    className: guideActive ? 'vr-guide-target' : '',
-                    id: 'vr-vision-backend-chain',
-                    'data-vr-guide-target': 'vision-backend',
-                    tabIndex: guideActive ? -1 : undefined,
-                  },
-                    guideCallout(),
-                    textField('providers', t('textProviders'), t('textProvidersHint'), true),
-                  ),
-              builtinFallbackPanel(),
-              h('div', { className: 'vr-group' },
-                h('p', { className: 'vr-group-title' }, t('httpLabel')),
-                httpProvidersEditor(),
-              ),
-              catalog.status === 'loading'
-                ? h('p', { className: 'vr-hint' }, t('catalogLoading'))
-                : catalog.status === 'error'
-                  ? h('div', { className: 'vr-catalog-error' },
-                      h('p', { className: 'vr-hint' }, t('catalogError') + catalog.error + t('catalogFallback')),
-                      h('button', {
-                        type: 'button', className: 'vr-btn',
-                        onClick: () => {
-                          setCatalog({ status: 'idle', groups: [], error: undefined })
-                          loadCatalog()
-                        },
-                      }, t('retryCatalog')),
-                    )
-                  : null,
-              h('button', {
-                type: 'button', className: 'vr-subheader', 'aria-expanded': showAdvanced,
-                onClick: () => setShowAdvanced(!showAdvanced),
-              },
-                h('span', { className: 'vr-label' }, t('advanced')),
-                h('span', { className: 'vr-chevron' + (showAdvanced ? ' vr-chevron-open' : '') }, '▾'),
-              ),
-              showAdvanced
-                ? h('div', { className: 'vr-advanced' },
-                    h('div', { className: 'vr-group' },
-                      h('p', { className: 'vr-group-title' }, t('groupTextModel')),
-                      catalogReady
-                        ? textProviderEditor()
-                        : textField('textProvider', t('textTextProvider'), t('textTextProviderHint'), false),
-                      h('p', { className: 'vr-hint' }, t('textModelGroupHint')),
-                    ),
-                    h('div', { className: 'vr-group' },
-                      h('p', { className: 'vr-group-title' }, t('groupBehavior')),
-                      ADVANCED_TOGGLE_KEYS.map((key) => toggleField(key)),
-                    ),
-                    h('div', { className: 'vr-group' },
-                      h('p', { className: 'vr-group-title' }, t('groupParams')),
-                      NUMBER_KEYS.map((key) => textField(key, t(LABEL_KEY[key]), t(HINT_KEY[key]), false)),
-                    ),
-                    h('div', { className: 'vr-group' },
-                      h('p', { className: 'vr-group-title' }, t('groupRoutes')),
-                      TEXT_KEYS.map((key) => textField(key, t(LABEL_KEY[key]), t(HINT_KEY[key]), false)),
-                    ),
-                    h('div', { className: 'vr-group' },
-                      h('p', { className: 'vr-group-title' }, t('groupProxy')),
-                      textField('proxy', t('proxyLabel'), t('proxyHint'), false),
-                      textField('proxyHosts', t('proxyHostsLabel'), t('proxyHostsHint'), true),
-                    ),
-                  )
-                : null,
               h('div', { className: 'vr-footer' },
                 testState.status !== 'idle'
                   ? h('p', {
@@ -1912,15 +1853,6 @@ window.__ModuleLoader__.load({
                   type: 'button', className: 'vr-btn', disabled: testState.status === 'running',
                   onClick: runTestConnection,
                 }, t('testConnection')),
-                failed ? h('p', { className: 'vr-failed' }, t('saveFailed')) : null,
-                h('button', {
-                  type: 'button', className: 'vr-btn', disabled: !dirty || saving,
-                  onClick: clearDrafts,
-                }, t('discard')),
-                h('button', {
-                  type: 'button', className: 'vr-btn vr-btn-save', disabled: blocked,
-                  onClick: save,
-                }, saving ? t('saving') : t('save')),
               ),
             )
           : null,
@@ -2115,7 +2047,8 @@ window.__ModuleLoader__.load({
       }
       ctx.effect(installStyles, 'vision-router: card styles')
       ctx.effect(() => installVisionSettingsGuide(t), 'vision-router: model selection guide')
-      ctx.effect(() => installOnboarding(t), 'vision-router: first-run onboarding')
+      // first-run onboarding dialog removed (v1.3.1): the popup annoyed users;
+      // the settings card quick-start and the Models-page editor cover onboarding.
       ctx.effect(
         () =>
           ctx.slots.inject('settings.plugin.item', function* () {
