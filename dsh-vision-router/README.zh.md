@@ -10,7 +10,7 @@
 >
 > **亿哲学长在原作者基础上的修改（未改动识图逻辑本身）：**
 >
-> 1. **显示当前识图 AI**（本次主要增强）：模型选择器与「设置 → 模型」页直接显示当前视觉后端是哪个 AI —— 例如 `DeepSeek + 自动识图（智谱 glm-4v-flash）`、`视觉路由（自动识图）· 智谱 glm-4v-flash`；按后端地址自动识别厂商（智谱 / 豆包 / Gemini / OpenAI / Anthropic / Kimi / 通义 / DeepSeek / OVH），切换后端无需改代码
+> 1. **显示当前识图 AI**（本次主要增强）：「设置 → 模型」页直接显示当前视觉后端是哪个 AI —— 例如 `视觉路由（自动识图）· 智谱 glm-4v-flash`；聊天页模型选择器显示固定的 `DeepSeek + 自动识图` 组名；按后端地址自动识别厂商（智谱 / 豆包 / Gemini / OpenAI / Anthropic / Kimi / 通义 / DeepSeek / OVH），切换后端无需改代码
 > 2. **设置页注册时机修正**：将「视觉路由」提供方注册移到设置挂载之后，确保名称显示真实配置而非默认值
 > 3. **身份信息**：package.json 的 author / repository / homepage 改为本维护者（**MIT 许可与原版权声明保留，不得移除**，见 [LICENSE](LICENSE)）
 > 4. **API Key 直填（v1.3.0 新增）**：设置卡片新增「HTTP 提供方（API Key 直填）」编辑器 —— 内置 OpenAI / Claude（需 OpenAI 兼容网关）/ 智谱 / 豆包 / 通义 / SiliconFlow / OpenRouter 等服务商预设，选好预设后**直接粘贴 API Key 点保存**即可生效，无需再改环境变量或 YAML；请求时直填 Key 优先于环境变量。Key 仅保存在本机设置文件中，不写入插件、不随仓库分发、不记录日志

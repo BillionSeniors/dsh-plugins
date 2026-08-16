@@ -2108,7 +2108,7 @@ export function apply(ctx, config = {}) {
     }
     const wrapperAdapter = {
       providerInfo(provider) {
-        return { id: provider, name: `DeepSeek + 自动识图（${visionBackendName()}）` }
+        return { id: provider, name: 'DeepSeek + 自动识图' }
       },
       providerRetryPolicy() {
         try {
@@ -2280,7 +2280,7 @@ export function apply(ctx, config = {}) {
         } catch {
           info = undefined
         }
-        return { id: twinRoute, name: `${info && info.name ? info.name : provider} + 自动识图（${visionBackendName()}）` }
+        return { id: twinRoute, name: `${info && info.name ? info.name : provider} + 自动识图` }
       },
       providerRetryPolicy() {
         const original = originalAdapter()
