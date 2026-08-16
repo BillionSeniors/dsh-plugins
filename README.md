@@ -24,6 +24,10 @@
 - **界面怎么显示当前用的谁**：改完保存即生效 —— 聊天页模型选择器显示 `DeepSeek + 自动识图（智谱 glm-4v-flash）`；设置页路由行显示 `视觉路由（自动识图）· 智谱 glm-4v-flash`；未配置任何 Key 时显示「内置免费链（OVH）」
 - **亿哲学长改了什么**：见 [`dsh-vision-router/README.md`](dsh-vision-router/README.md) —— 在界面显示当前识图 AI 的名称、修正设置页注册时机、**v1.3.0 新增「API Key 直填」**（模型页直接粘贴 Key 保存，无需环境变量 / YAML）、**v1.3.3 补丁自动应用**（安装后无需手动命令）；**未改动原作者任何识图逻辑**，MIT 许可与原版权声明完整保留。
 
+实际使用效果：聊天里发图，模型自动调用 `vision_describe` 等像素级视觉工具识别图片内容：
+
+![图片识别实际使用效果](assets/vision-describe-usage.png)
+
 ## 🚀 安装
 
 DeepSeek Harness（dsh）界面总览：
