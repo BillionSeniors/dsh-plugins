@@ -620,15 +620,21 @@ window.__ModuleLoader__.load({
 				}
 			}, [jump]);
 
-			// 浏览：优先系统文件夹选择器（native）；不可用（桌面端 browse 模式等）时
-			// 降级为应用内文件夹选择器，让用户在面板里直接选目录。
+			// 浏览：优先系统文件夹选择器（native）；不可用时（如桌面端 browse 模式）
+			// 改为调用 explorer.exe 打开资源管理器窗口（当前面板目录），用户可在
+			// 资源管理器中把目标文件夹拖进面板，或用面板的路径框/目录树切换。
 			const pick = async () => {
 				setError(null);
 				try {
 					const picked = await api.pickDirectory();
 					if (picked) load(picked);
 				} catch (e) {
-					openPicker();
+					const target = path || anchor || sessionCwd;
+					if (target) {
+						api.openPath(target).catch(() => { /* 打开失败忽略 */ });
+					} else {
+						setError("没有可打开的目录");
+					}
 				}
 			};
 
