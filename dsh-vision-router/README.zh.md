@@ -13,10 +13,11 @@
 > 1. **显示当前识图 AI**（本次主要增强）：模型选择器与「设置 → 模型」页直接显示当前视觉后端是哪个 AI —— 例如 `DeepSeek + 自动识图（智谱 glm-4v-flash）`、`视觉路由（自动识图）· 智谱 glm-4v-flash`；按后端地址自动识别厂商（智谱 / 豆包 / Gemini / OpenAI / Anthropic / Kimi / 通义 / DeepSeek / OVH），切换后端无需改代码
 > 2. **设置页注册时机修正**：将「视觉路由」提供方注册移到设置挂载之后，确保名称显示真实配置而非默认值
 > 3. **身份信息**：package.json 的 author / repository / homepage 改为本维护者（**MIT 许可与原版权声明保留，不得移除**，见 [LICENSE](LICENSE)）
+> 4. **API Key 直填（v1.3.0 新增）**：设置卡片新增「HTTP 提供方（API Key 直填）」编辑器 —— 内置 OpenAI / Claude（需 OpenAI 兼容网关）/ 智谱 / 豆包 / 通义 / SiliconFlow / OpenRouter 等服务商预设，选好预设后**直接粘贴 API Key 点保存**即可生效，无需再改环境变量或 YAML；请求时直填 Key 优先于环境变量。Key 仅保存在本机设置文件中，不写入插件、不随仓库分发、不记录日志
 >
 > 安装：`dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
-> 🔒 **隐私说明**：本仓库**不包含任何 API Key**。视觉后端 Key 通过**本机环境变量**配置（如 `ZHIPU_API_KEY` / `ARK_API_KEY`），不会随仓库分发。
+> 🔒 **隐私说明**：本仓库**不包含任何 API Key**。视觉后端 Key 有两种配置方式：在设置卡片的「HTTP 提供方（API Key 直填）」里直接粘贴保存（推荐，v1.3.0+），或通过**本机环境变量**配置（如 `ZHIPU_API_KEY` / `ARK_API_KEY`）；均不会随仓库分发。
 
 <h1 align="center">dsh-vision-router</h1>
 

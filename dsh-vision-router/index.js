@@ -51,57 +51,59 @@ export const DEFAULT_PROXY_HOSTS = [
 ]
 
 export const Config = z.object({
-  provider: z.string().default('vision-http'),
-  model: z.string().default('ovh/Qwen3.5-397B-A17B'),
-  fallbacks: z.array(z.string()).default([]),
+  provider: z.string().description('默认视觉后端（vision-http = 内置 HTTP 视觉链）').default('vision-http'),
+  model: z.string().description('默认视觉模型').default('ovh/Qwen3.5-397B-A17B'),
+  fallbacks: z.array(z.string()).description('默认备用模型（每行一个，从上到下失败回退）').default([]),
   // 默认预置内置免费端点为第一行（与运行时兜底一致）：新用户在卡片里
   // 直接看到「vision-http / ovh/Qwen2.5-VL-72B-Instruct（内置免费模型）」
   // 这一行，往下加行即降级链。
   providers: z
     .array(
       z.object({
-        provider: z.string(),
-        model: z.string(),
-        fallbacks: z.array(z.string()).default([]),
+        provider: z.string().description('提供方'),
+        model: z.string().description('模型'),
+        fallbacks: z.array(z.string()).description('备用模型').default([]),
       }),
     )
+    .description('视觉后端链（识图工具使用，从上到下失败回退）')
     .default([{ provider: 'vision-http', model: 'ovh/Qwen3.5-397B-A17B', fallbacks: [] }]),
   // 默认关闭：图片轮不整轮切到视觉模型，而是像普通文本轮一样由会话模型
   // 调用视觉工具看图（可连续多步操作）。开启后恢复旧的整轮自动路由行为。
-  routing: z.boolean().default(false),
-  reverseRouting: z.boolean().default(true),
-  wrapperRoute: z.string().default('deepseek-vision'),
-  chainRoute: z.string().default('vision-chain'),
+  routing: z.boolean().description('图片轮整轮自动路由').default(false),
+  reverseRouting: z.boolean().description('文字轮反向路由').default(true),
+  wrapperRoute: z.string().description('「自动识图」入口路由名').default('deepseek-vision'),
+  chainRoute: z.string().description('视觉链挂载路由名').default('vision-chain'),
   // 默认关闭（issue #34 明确 opt-in）：关闭时官方 deepseek-official 路由
   // 原样保留；唯一例外见 apply 里的 keep-alive 兜底（官方行被禁用时）。
-  stealth: z.boolean().default(false),
+  stealth: z.boolean().description('隐身模式（接管官方 DeepSeek 路由）').default(false),
   textProvider: z
     .object({
-      provider: z.string().default('deepseek-official'),
-      model: z.string().default('deepseek-v4-pro'),
+      provider: z.string().description('提供方').default('deepseek-official'),
+      model: z.string().description('模型').default('deepseek-v4-pro'),
     })
+    .description('文本模型（仅图片轮整轮路由时使用）')
     .default({}),
-  tool: z.boolean().default(true),
-  progressiveTools: z.boolean().default(true),
-  autoActivateOnImage: z.boolean().default(true),
-  artifactsDir: z.string().default('.dsh-vision-router/artifacts'),
-  rewriteImages: z.boolean().default(true),
-  downscale: z.boolean().default(true),
-  downscaleMaxPixels: z.number().step(1).min(1000).default(4000000),
-  cache: z.boolean().default(true),
-  cacheTtlSeconds: z.number().step(1).min(0).default(3600),
-  cacheMaxEntries: z.number().step(1).min(1).default(200),
-  timeoutMs: z.number().step(1).min(1000).max(600000).default(120000),
-  proxy: z.string().default(''),
-  proxyHosts: z.array(z.string()).default([...DEFAULT_PROXY_HOSTS]),
-  freeFallback: z.boolean().default(true),
+  tool: z.boolean().description('识图工具（vision_describe 等）').default(true),
+  progressiveTools: z.boolean().description('渐进式像素工具').default(true),
+  autoActivateOnImage: z.boolean().description('发图自动激活识图').default(true),
+  artifactsDir: z.string().description('视觉工具产物目录').default('.dsh-vision-router/artifacts'),
+  rewriteImages: z.boolean().description('图片块改写').default(true),
+  downscale: z.boolean().description('图片自动压缩').default(true),
+  downscaleMaxPixels: z.number().description('图片像素预算').step(1).min(1000).default(4000000),
+  cache: z.boolean().description('识图答案缓存').default(true),
+  cacheTtlSeconds: z.number().description('缓存有效期（秒）').step(1).min(0).default(3600),
+  cacheMaxEntries: z.number().description('缓存条目上限').step(1).min(1).default(200),
+  timeoutMs: z.number().description('视觉请求超时（毫秒）').step(1).min(1000).max(600000).default(120000),
+  proxy: z.string().description('代理地址（如 http://127.0.0.1:10808）').default(''),
+  proxyHosts: z.array(z.string()).description('走代理的域名（每行一个）').default([...DEFAULT_PROXY_HOSTS]),
+  freeFallback: z.boolean().description('内置 OVH 免费兜底').default(true),
   // Automatically mirror every currently registered provider as an
   // image-capable twin. The source registry is live (ctx.llm.listProviders),
   // so providers added later through Settings are picked up by the existing
   // llm/adapters-updated sync. The original route is never changed: even a
   // native multimodal model may expose an additional + auto-vision entry so
   // users can deliberately route image work through vision-router's toolchain.
-  autoWrapProviders: z.boolean().default(true),
+  autoWrapProviders: z.boolean().description('自动创建「+ 自动识图」模型组').default(true),
   // Text-provider routes the user wants wrapped as image-capable twins
   // (e.g. opencode-go): each entry registers a "<provider>-vision" route
   // whose catalog mirrors the original models but declares image input.
@@ -112,21 +114,28 @@ export const Config = z.object({
   wrappedProviders: z
     .array(
       z.object({
-        provider: z.string(),
-        models: z.array(z.string()).default([]),
+        provider: z.string().description('提供方'),
+        models: z.array(z.string()).description('模型（留空 = 全部）').default([]),
       }),
     )
+    .description('手动限定自动识图范围（可选）')
     .default([{ provider: 'deepseek-official', models: [] }]),
   httpProviders: z
     .array(
       z.object({
-        name: z.string(),
-        baseURL: z.string(),
-        model: z.string(),
-        apiKeyEnv: z.string().default(''),
-        maxTokens: z.number().step(1).min(1).default(4096),
+        name: z.string().description('名称'),
+        baseURL: z.string().description('API 地址'),
+        model: z.string().description('模型'),
+        // Credential reference / environment variable name (legacy).
+        apiKeyEnv: z.string().description('环境变量名（旧方式，直填 Key 时留空）').default(''),
+        // Direct API key pasted in the settings card. Wins over apiKeyEnv at
+        // request time; stored only in the local settings document and never
+        // logged or shipped with the plugin.
+        apiKey: z.string().description('API Key（直填，优先于环境变量）').default(''),
+        maxTokens: z.number().description('最大输出 Token').step(1).min(1).default(4096),
       }),
     )
+    .description('HTTP 提供方（OpenAI 兼容端点，可直接粘贴 API Key）')
     .default([]),
 })
 
@@ -1367,11 +1376,19 @@ export function toOpenAIContent(blocks, bytesOf) {
   })
 }
 
-/** One non-streaming OpenAI-compatible chat completion; keyless when apiKeyEnv is empty. */
+/**
+ * One non-streaming OpenAI-compatible chat completion; keyless when both
+ * apiKey (direct, pasted in the settings card) and apiKeyEnv are empty.
+ */
 export async function callOpenAICompatible(provider, messages, options = {}) {
   const headers = { 'content-type': 'application/json' }
+  // A direct key pasted in the settings card wins; otherwise fall back to the
+  // credential reference / environment variable named by apiKeyEnv.
+  const directKey = typeof provider.apiKey === 'string' ? provider.apiKey.trim() : ''
   const apiKeyEnv = typeof provider.apiKeyEnv === 'string' ? provider.apiKeyEnv : ''
-  if (apiKeyEnv !== '') {
+  if (directKey !== '') {
+    headers.authorization = `Bearer ${directKey}`
+  } else if (apiKeyEnv !== '') {
     let apiKey = ''
     if (typeof options.resolveCredential === 'function') {
       const hit = await options.resolveCredential(apiKeyEnv)
@@ -1409,7 +1426,7 @@ export async function callOpenAICompatible(provider, messages, options = {}) {
     // the outer vision fallback can use the next model's independent bucket
     // instead of blocking the agent for 30-60 seconds.
     const anonymousOvh =
-      apiKeyEnv === '' && /(?:^|\.)ai\.cloud\.ovh\.net$/i.test(new URL(provider.baseURL).hostname)
+      directKey === '' && apiKeyEnv === '' && /(?:^|\.)ai\.cloud\.ovh\.net$/i.test(new URL(provider.baseURL).hostname)
     if (response.status === 429 && anonymousOvh) {
       const detail = (await response.text().catch(() => '')).slice(0, 300)
       throw new Error(`http provider "${provider.name}": 429 ${detail}`)
@@ -4055,22 +4072,44 @@ export function apply(ctx, config = {}) {
     // namespaces (plus a fixed product allowlist) — without this directory
     // entry the Web card's settingsScope binder reports the namespace as
     // unavailable.
-    try {
-      const providerDirectory = ctx.llm.registerConfigurableProviders([
-        {
-          provider: 'vision-router',
-          displayName: `视觉路由（自动识图）· ${visionBackendName()}`,
-          settingsNs: 'vision-router',
-          settingsPath: [],
-        },
-      ])
-      ctx.effect(() => providerDirectory, 'vision-router: configurable provider directory')
-    } catch (error) {
-      ctx.logger?.warn(
-        'vision-router: configurable provider registration failed: %s',
-        error && error.message ? error.message : String(error),
-      )
+    let directoryHandle = undefined
+    const syncDirectory = () => {
+      try {
+        const next = [
+          {
+            provider: 'vision-router',
+            displayName: `视觉路由（自动识图）· ${visionBackendName()}`,
+            settingsNs: 'vision-router',
+            settingsPath: [],
+          },
+        ]
+        if (directoryHandle === undefined) {
+          directoryHandle = ctx.llm.registerConfigurableProviders(next)
+          ctx.effect(
+            () => () => {
+              if (directoryHandle !== undefined) {
+                try {
+                  directoryHandle()
+                } catch {
+                  /* registration already withdrawn */
+                }
+              }
+            },
+            'vision-router: configurable provider directory',
+          )
+        } else {
+          // Atomic swap: the Models page / picker title follows the active
+          // backend (httpProviders[0] vendor + model) without a restart.
+          directoryHandle.replace(next)
+        }
+      } catch (error) {
+        ctx.logger?.warn(
+          'vision-router: configurable provider directory sync failed: %s',
+          error && error.message ? error.message : String(error),
+        )
+      }
     }
+    syncDirectory()
     sctx.effect(
       () => () => {
         // The settings provider went away: fall back to the composition entry.
@@ -4081,7 +4120,9 @@ export function apply(ctx, config = {}) {
     scope.watch(() => {
       // Most consumers read current() per call, but the wrappedProviders
       // twins are registered eagerly: re-sync them whenever the settings
-      // document loads or the user edits the wrappers section.
+      // document loads or the user edits the wrappers section. The directory
+      // displayName also follows the settings (切换智谱/豆包后标题即时更新).
+      syncDirectory()
       syncTwins()
     })
   })

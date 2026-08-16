@@ -16,7 +16,7 @@ window.__ModuleLoader__.load({
     const NS = 'vision-router'
     const zh = {
       nav: '视觉路由（自动识图）',
-      desc: '会话模型负责聊天，视觉后端负责看图；两者分开设置 · 面板 v8',
+      desc: '会话模型负责聊天，视觉后端负责看图；两者分开设置 · 面板 v9',
       quickStartTitle: '聊天与看图分别设置',
       quickStartBody: '① 会话/文字模型：在聊天页右下角选择；发图时选带「+ 自动识图」的模型组。② 视觉模型：在本卡片的「视觉后端链」里选择，只负责看图。',
       quickStartLive: '只想换识图模型，就改下面的「视觉后端链」；不会改变聊天页右下角的会话模型。',
@@ -181,10 +181,35 @@ window.__ModuleLoader__.load({
       retryPresentedImage: '加载失败，点击重试',
       imagePreviewDialog: '图片预览',
       closeImagePreview: '关闭预览',
+      httpLabel: 'HTTP 提供方（API Key 直填）',
+      httpHint:
+        '在这里添加支持图片输入的 OpenAI 兼容端点：选服务商预设或手动填写，粘贴 API Key 后点底部「保存」即可生效，' +
+        '无需再改环境变量或 YAML。Key 仅保存在本机设置文件中，不会写入插件、不会随仓库分发，也不会出现在日志里。',
+      httpPreset: '服务商预设',
+      httpName: '名称',
+      httpBaseURL: 'API 地址',
+      httpModel: '模型',
+      httpMaxTokens: '最大 Token',
+      httpKey: 'API Key',
+      httpKeyPlaceholder: '粘贴 API Key…',
+      httpKeySaved: '已保存（重新输入可覆盖）',
+      httpKeyLegacyEnv: '或环境变量：',
+      httpAdd: '+ 添加提供方',
+      httpRemove: '删除',
+      httpRemoveTitle: '删除此提供方',
+      httpInvalidRow: '每一行提供方都需填写名称、API 地址和模型。',
+      httpPresetCustom: '自定义',
+      httpPresetOpenAI: 'OpenAI',
+      httpPresetAnthropic: 'Anthropic Claude（需 OpenAI 兼容网关）',
+      httpPresetZhipu: '智谱 GLM（免费视觉）',
+      httpPresetArk: '火山方舟（豆包）',
+      httpPresetDashScope: '阿里云百炼（通义 VL）',
+      httpPresetSiliconFlow: 'SiliconFlow',
+      httpPresetOpenRouter: 'OpenRouter',
     }
     const en = {
       nav: 'Vision Router (auto image understanding)',
-      desc: 'The session model chats; the vision backend sees images. They are configured separately · panel v8',
+      desc: 'The session model chats; the vision backend sees images. They are configured separately · panel v9',
       quickStartTitle: 'Chat and vision are configured separately',
       quickStartBody: '① Session/text model: choose it from the lower-right chat selector; for image turns use a group marked “+ Auto Vision”. ② Vision model: choose it in this card under “Vision backend chain”; it only handles image understanding.',
       quickStartLive: 'To change only image understanding, edit “Vision backend chain” below; your lower-right session model is not changed.',
@@ -352,6 +377,30 @@ window.__ModuleLoader__.load({
       retryPresentedImage: 'Load failed, click to retry',
       imagePreviewDialog: 'Image preview',
       closeImagePreview: 'Close preview',
+      httpLabel: 'HTTP providers (paste API key)',
+      httpHint:
+        'Add OpenAI-compatible endpoints that accept image input: pick a preset or fill the fields, paste the API key and hit “Save” at the bottom — no environment variables or YAML editing needed. Keys are kept only in the local settings document: never shipped with the plugin, never logged.',
+      httpPreset: 'Preset',
+      httpName: 'Name',
+      httpBaseURL: 'API base URL',
+      httpModel: 'Model',
+      httpMaxTokens: 'Max tokens',
+      httpKey: 'API key',
+      httpKeyPlaceholder: 'Paste API key…',
+      httpKeySaved: 'Saved (retype to replace)',
+      httpKeyLegacyEnv: 'or env var:',
+      httpAdd: '+ Add provider',
+      httpRemove: 'Remove',
+      httpRemoveTitle: 'Remove this provider',
+      httpInvalidRow: 'Every provider row needs a name, API base URL and model.',
+      httpPresetCustom: 'Custom',
+      httpPresetOpenAI: 'OpenAI',
+      httpPresetAnthropic: 'Anthropic Claude (needs an OpenAI-compatible gateway)',
+      httpPresetZhipu: 'Zhipu GLM (free vision)',
+      httpPresetArk: 'Volcengine ARK (Doubao)',
+      httpPresetDashScope: 'Alibaba DashScope (Qwen VL)',
+      httpPresetSiliconFlow: 'SiliconFlow',
+      httpPresetOpenRouter: 'OpenRouter',
     }
 
     /**
@@ -402,6 +451,33 @@ window.__ModuleLoader__.load({
       cacheMaxEntries: { min: 1 },
     }
     const TEXT_KEYS = ['wrapperRoute', 'chainRoute']
+
+    // ── HTTP provider presets for the "API key 直填" editor ─────────────────
+    // `label` is a locale key; picking a preset fills name/baseURL (and a
+    // suggested model) so the user only has to paste the API key.
+    const HTTP_PRESETS = [
+      { id: 'custom', label: 'httpPresetCustom', baseURL: '', model: '' },
+      { id: 'openai', label: 'httpPresetOpenAI', baseURL: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+      { id: 'anthropic', label: 'httpPresetAnthropic', baseURL: 'https://api.anthropic.com/v1', model: '' },
+      { id: 'zhipu', label: 'httpPresetZhipu', baseURL: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4v-flash' },
+      { id: 'ark', label: 'httpPresetArk', baseURL: 'https://ark.cn-beijing.volces.com/api/v3', model: 'doubao-1.5-vision-pro-32k-250115' },
+      { id: 'dashscope', label: 'httpPresetDashScope', baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-vl-plus' },
+      { id: 'siliconflow', label: 'httpPresetSiliconFlow', baseURL: 'https://api.siliconflow.cn/v1', model: 'Qwen/Qwen2.5-VL-72B-Instruct' },
+      { id: 'openrouter', label: 'httpPresetOpenRouter', baseURL: 'https://openrouter.ai/api/v1', model: 'qwen/qwen3-vl-235b' },
+    ]
+    const httpPresetOf = (row) => {
+      const baseURL = typeof row.baseURL === 'string' ? row.baseURL : ''
+      const hit = HTTP_PRESETS.find((preset) => preset.id !== 'custom' && preset.baseURL === baseURL)
+      return hit ? hit.id : 'custom'
+    }
+    const emptyHttpRow = () => ({
+      name: '',
+      baseURL: '',
+      model: '',
+      apiKeyEnv: '',
+      apiKey: '',
+      maxTokens: 4096,
+    })
 
     function readValue(snapshot, key) {
       const value = snapshot && snapshot.value
@@ -978,6 +1054,14 @@ window.__ModuleLoader__.load({
             )
             .join('\n')
         }
+        if (key === 'httpProviders') {
+          if (!Array.isArray(value)) return []
+          return value.map((row) => {
+            const copy = { ...row }
+            if (typeof copy.maxTokens !== 'number') copy.maxTokens = 4096
+            return copy
+          })
+        }
         if (NUMBER_KEYS.includes(key)) return typeof value === 'number' ? String(value) : ''
         if (ALL_TOGGLE_KEYS.includes(key)) return value === true
         return typeof value === 'string' ? value : ''
@@ -1063,6 +1147,27 @@ window.__ModuleLoader__.load({
             list.push({ provider, models })
           }
           return list.length > 0 ? { value: list } : { clear: true }
+        }
+        if (key === 'httpProviders') {
+          const rows = Array.isArray(text) ? text : []
+          const cleaned = []
+          for (const row of rows) {
+            if (row === undefined || row === null || typeof row !== 'object') return undefined
+            const name = typeof row.name === 'string' ? row.name.trim() : ''
+            const baseURL = typeof row.baseURL === 'string' ? row.baseURL.trim() : ''
+            const model = typeof row.model === 'string' ? row.model.trim() : ''
+            if (name === '' && baseURL === '' && model === '') continue // blank template row
+            if (name === '' || baseURL === '' || model === '') return undefined
+            const entry = { name, baseURL, model }
+            const env = typeof row.apiKeyEnv === 'string' ? row.apiKeyEnv.trim() : ''
+            if (env !== '') entry.apiKeyEnv = env
+            const directKey = typeof row.apiKey === 'string' ? row.apiKey.trim() : ''
+            if (directKey !== '') entry.apiKey = directKey
+            const maxTokens = Number(row.maxTokens)
+            entry.maxTokens = Number.isFinite(maxTokens) && maxTokens >= 1 ? Math.floor(maxTokens) : 4096
+            cleaned.push(entry)
+          }
+          return cleaned.length > 0 ? { value: cleaned } : { clear: true }
         }
         const trimmed = String(text ?? '').trim()
         return trimmed === '' ? { clear: true } : { value: trimmed }
@@ -1435,6 +1540,99 @@ window.__ModuleLoader__.load({
           h('p', { className: 'vr-hint' }, t('wrapHint')),
         )
       }
+      const httpProvidersEditor = () => {
+        const value = format('httpProviders')
+        const rows = Array.isArray(value) && value.length > 0 ? value : [emptyHttpRow()]
+        const updateHttp = (index, next) => {
+          const list = rows.map((row) => ({ ...row }))
+          list[index] = next
+          setDraft('httpProviders', list)
+        }
+        const removeHttp = (index) => {
+          const list = rows.filter((_row, i) => i !== index)
+          setDraft('httpProviders', list.length > 0 ? list : [emptyHttpRow()])
+        }
+        const applyPreset = (index, presetId) => {
+          const preset = HTTP_PRESETS.find((p) => p.id === presetId) || HTTP_PRESETS[0]
+          const row = rows[index] || emptyHttpRow()
+          updateHttp(index, {
+            ...row,
+            name: preset.id === 'custom' ? row.name : preset.id,
+            baseURL: preset.baseURL,
+            model: preset.id === 'custom' ? row.model : preset.model,
+          })
+        }
+        const rowBox = { border: '1px solid rgba(128,128,160,.28)', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }
+        const rowLine = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }
+        return h('div', { className: 'vr-field' },
+          h('div', { className: 'vr-field-head' },
+            h('label', { className: 'vr-label' }, t('httpLabel')),
+            overriddenBadge('httpProviders'),
+          ),
+          rows.map((row, index) =>
+            h('div', { style: rowBox, key: index },
+              h('div', { style: rowLine },
+                h('select', {
+                  className: 'vr-input vr-select', style: { flex: '0 0 220px' },
+                  value: httpPresetOf(row), disabled: !writable,
+                  onChange: (event) => applyPreset(index, event.target.value),
+                },
+                  HTTP_PRESETS.map((preset) =>
+                    h('option', { value: preset.id, key: preset.id }, t(preset.label)),
+                  ),
+                ),
+                h('input', {
+                  className: 'vr-input', style: { flex: '1 1 160px' }, placeholder: t('httpName'),
+                  value: typeof row.name === 'string' ? row.name : '', disabled: !writable,
+                  onChange: (event) => updateHttp(index, { ...row, name: event.target.value }),
+                }),
+                h('button', {
+                  type: 'button', className: 'vr-reset', disabled: !writable, title: t('httpRemoveTitle'),
+                  onClick: () => removeHttp(index),
+                }, t('httpRemove')),
+              ),
+              h('input', {
+                className: 'vr-input', placeholder: t('httpBaseURL'),
+                value: typeof row.baseURL === 'string' ? row.baseURL : '', disabled: !writable,
+                onChange: (event) => updateHttp(index, { ...row, baseURL: event.target.value }),
+              }),
+              h('div', { style: rowLine },
+                h('input', {
+                  className: 'vr-input', style: { flex: '1 1 260px' }, placeholder: t('httpModel'),
+                  value: typeof row.model === 'string' ? row.model : '', disabled: !writable,
+                  onChange: (event) => updateHttp(index, { ...row, model: event.target.value }),
+                }),
+                h('input', {
+                  className: 'vr-input', style: { flex: '0 0 140px' }, type: 'number', min: 1,
+                  placeholder: t('httpMaxTokens'),
+                  value: row.maxTokens === undefined || row.maxTokens === null || row.maxTokens === ''
+                    ? '4096'
+                    : String(row.maxTokens),
+                  disabled: !writable,
+                  onChange: (event) => updateHttp(index, { ...row, maxTokens: event.target.value }),
+                }),
+              ),
+              h('div', { style: rowLine },
+                h('input', {
+                  className: 'vr-input', style: { flex: '1 1 280px' }, type: 'password', autoComplete: 'off',
+                  placeholder: row.apiKey ? t('httpKeySaved') : t('httpKeyPlaceholder'),
+                  value: typeof row.apiKey === 'string' ? row.apiKey : '', disabled: !writable,
+                  onChange: (event) => updateHttp(index, { ...row, apiKey: event.target.value }),
+                }),
+                typeof row.apiKeyEnv === 'string' && row.apiKeyEnv !== ''
+                  ? h('span', { className: 'vr-hint', style: { margin: 0 } },
+                      t('httpKeyLegacyEnv') + ' ' + row.apiKeyEnv)
+                  : null,
+              ),
+            ),
+          ),
+          h('button', {
+            type: 'button', className: 'vr-btn', disabled: !writable,
+            onClick: () => setDraft('httpProviders', [...rows, emptyHttpRow()]),
+          }, t('httpAdd')),
+          h('p', { className: 'vr-hint' }, t('httpHint')),
+        )
+      }
 
       // Render-phase kick: whenever the body is open and the catalog was never
       // fetched (including after a remount that reset the state), start the
@@ -1645,6 +1843,10 @@ window.__ModuleLoader__.load({
                     textField('providers', t('textProviders'), t('textProvidersHint'), true),
                   ),
               builtinFallbackPanel(),
+              h('div', { className: 'vr-group' },
+                h('p', { className: 'vr-group-title' }, t('httpLabel')),
+                httpProvidersEditor(),
+              ),
               catalog.status === 'loading'
                 ? h('p', { className: 'vr-hint' }, t('catalogLoading'))
                 : catalog.status === 'error'

@@ -13,10 +13,11 @@
 > 1. **Show the active vision AI** (main enhancement): the chat model picker and Settings → Models now display the current vision backend, e.g. `DeepSeek + 自动识图（智谱 glm-4v-flash）`, `视觉路由（自动识图）· 智谱 glm-4v-flash`; the vendor (Zhipu / Doubao / Gemini / OpenAI / Anthropic / Kimi / Qwen / DeepSeek / OVH) is detected from the backend URL, so switching backends needs no code change
 > 2. **Registration timing fix**: the "视觉路由" provider is now registered after the settings service mounts, so the displayed name reflects the real config instead of defaults
 > 3. **Identity fields**: package.json author / repository / homepage now point to this maintainer (**MIT license and the original copyright notice are kept — do not remove**, see [LICENSE](LICENSE))
+> 4. **Paste-to-save API keys (new in v1.3.0)**: the settings card gains an “HTTP providers (paste API key)” editor with presets for OpenAI / Claude (needs an OpenAI-compatible gateway) / Zhipu / Doubao (ARK) / Qwen (DashScope) / SiliconFlow / OpenRouter. Pick a preset, paste the API key and hit Save — no environment variables or YAML editing. The pasted key takes precedence over `apiKeyEnv` at request time and is stored only in the local settings document: never shipped with the plugin, never logged.
 >
 > Install: `dsh plugin add github:BillionSeniors/dsh-vision-router`
 >
-> 🔒 **Privacy**: this repository contains **no API keys**. Vision backends read their keys from **local environment variables** (e.g. `ZHIPU_API_KEY` / `ARK_API_KEY`); keys are never distributed with the repo.
+> 🔒 **Privacy**: this repository contains **no API keys**. Vision keys can be configured two ways: paste them directly in the settings card's “HTTP providers (paste API key)” editor (recommended, v1.3.0+), or via **local environment variables** (e.g. `ZHIPU_API_KEY` / `ARK_API_KEY`); neither is ever distributed with the repo.
 
 <h1 align="center">dsh-vision-router</h1>
 
