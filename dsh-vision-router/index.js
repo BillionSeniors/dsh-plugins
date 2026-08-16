@@ -1783,6 +1783,10 @@ export function apply(ctx, config = {}) {
     return typeof value === 'string' && value !== '' ? value : undefined
   }
   let wrapperRegistered = false
+  // The wrapper route registration handle: re-registering it on settings
+  // changes keeps the model-picker label ("DeepSeek + 自动识图（...）") in
+  // sync with the real vision backend without a restart.
+  let wrapperHandle = undefined
   const textProvider = () => {
     const text = current().textProvider
     return {
@@ -2193,6 +2197,7 @@ export function apply(ctx, config = {}) {
     }
     const handle = ctx.llm.registerAdapter([wrapperRoute()], wrapperAdapter)
     wrapperRegistered = true
+    wrapperHandle = handle
     ctx.effect(() => handle, 'vision-router: wrapper route')
   }
 
@@ -4130,6 +4135,22 @@ export function apply(ctx, config = {}) {
       },
       'vision-router: settings fallback',
     )
+    // The deepseek-vision wrapper route reads visionBackendName() lazily
+    // inside providerInfo, but the picker caches provider display names at
+    // registration time — and the wrapper registers before the settings
+    // document loads, so its label can stay on the startup backend while
+    // settings changed the effective one. Re-register the wrapper on every
+    // settings change (and document load): replace() re-runs providerInfo
+    // and broadcasts llm/adapters-updated so the chat picker refreshes.
+    const syncWrapper = () => {
+      try {
+        if (wrapperHandle === undefined) return
+        const route = wrapperRoute()
+        wrapperHandle.replace(route === undefined ? [] : [route])
+      } catch (error) {
+        // Registration already withdrawn; nothing to refresh.
+      }
+    }
     scope.watch(() => {
       // Most consumers read current() per call, but the wrappedProviders
       // twins are registered eagerly: re-sync them whenever the settings
@@ -4137,6 +4158,7 @@ export function apply(ctx, config = {}) {
       // displayName also follows the settings (切换智谱/豆包后标题即时更新).
       syncDirectory()
       syncTwins()
+      syncWrapper()
     })
   })
 
