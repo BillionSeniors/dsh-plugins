@@ -372,7 +372,23 @@ window.__ModuleLoader__.load({
 			/* drag & drop: pointer-based custom drag (IDE style, avoids native DnD stuck cursor) */
 			".pfe-ghost{position:fixed;z-index:1000;pointer-events:none;padding:7px 12px;border-radius:8px;background:var(--dsw-alias-bg-layer-3,#1f242c);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));box-shadow:0 12px 32px rgba(0,0,0,.45);font-size:12px;color:var(--dsw-alias-label-primary,#e6e9ef);max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
 			".pfe-drop-target{outline:2px dashed var(--dsw-alias-brand-primary,#3b82f6);outline-offset:-2px}",
-			".pfe-drop-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:1000;background:var(--dsw-alias-bg-layer-3,#1f242c);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:10px;padding:9px 14px;font-size:12px;color:var(--dsw-alias-label-primary,#e6e9ef);box-shadow:0 12px 32px rgba(0,0,0,.45);max-width:82vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .3s ease}"
+			".pfe-drop-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:1000;background:var(--dsw-alias-bg-layer-3,#1f242c);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:10px;padding:9px 14px;font-size:12px;color:var(--dsw-alias-label-primary,#e6e9ef);box-shadow:0 12px 32px rgba(0,0,0,.45);max-width:82vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .3s ease}",
+			/* in-app folder picker (fallback when the host native picker is unavailable, e.g. desktop) */
+			".pfe-picker-overlay{position:fixed;inset:0;z-index:1200;background:rgba(8,10,16,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}",
+			".pfe-picker{width:min(560px,90vw);max-height:82vh;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-2,#171a21);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.5);color:var(--dsw-alias-label-primary,#e6e9ef);overflow:hidden}",
+			".pfe-picker-head{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;flex:none}",
+			".pfe-picker-title{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+			".pfe-picker-close{flex:none;width:26px;height:26px;border:none;border-radius:7px;background:none;color:var(--dsw-alias-label-secondary,#9aa3b2);cursor:pointer;font-size:16px;line-height:1}",
+			".pfe-picker-close:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#e6e9ef)}",
+			".pfe-picker-path{display:flex;gap:8px;padding:0 16px 10px;flex:none}",
+			".pfe-picker-path .pfe-picker-input{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.14));border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1b1f27);color:var(--dsw-alias-label-primary,#e6e9ef);font:inherit;font-size:12px}",
+			".pfe-picker-list{flex:1;min-height:180px;overflow-y:auto;padding:2px 8px 6px;scrollbar-width:thin}",
+			".pfe-picker-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;color:var(--dsw-alias-label-primary,#e6e9ef);padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+			".pfe-picker-row:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.06))}",
+			".pfe-picker-row .dir-icon{flex:none;color:var(--dsw-alias-brand-primary,#5b9dff);display:inline-flex}",
+			".pfe-picker-note{padding:18px 16px;text-align:center;color:var(--dsw-alias-label-secondary,#9aa3b2);font-size:12px}",
+			".pfe-picker-error{padding:8px 16px 0;color:var(--dsw-alias-state-error-primary,#f87171);font-size:12px}",
+			".pfe-picker-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px 14px;border-top:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.07));flex:none}"
 		].join("\n");
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(styleTagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -511,6 +527,13 @@ window.__ModuleLoader__.load({
 			const [pathInput, setPathInput] = useState("");
 			const [opening, setOpening] = useState(false);
 			const [listCollapsed, setListCollapsed] = useState(false);
+			// 应用内文件夹选择器（native 系统选择器不可用时兜底，如桌面端 browse 模式）
+			const [pickerOpen, setPickerOpen] = useState(false);
+			const [pickerPath, setPickerPath] = useState(null);
+			const [pickerDirs, setPickerDirs] = useState([]);
+			const [pickerLoading, setPickerLoading] = useState(false);
+			const [pickerError, setPickerError] = useState(null);
+			const [pickerInput, setPickerInput] = useState("");
 			// 加载序号（单调递增）：作废在途的旧目录加载。切换工作区/会话后，旧工作区的
 			// 慢响应（大目录 + git 扫描可能耗时数百毫秒甚至更久）不能覆盖新工作区的内容，
 			// 否则面板会一直卡在“显示上一个文件夹”的状态。
@@ -597,16 +620,160 @@ window.__ModuleLoader__.load({
 				}
 			}, [jump]);
 
-			// 浏览：打开系统文件夹选择器，把所选文件夹加载进面板浏览。
+			// 浏览：优先系统文件夹选择器（native）；不可用（桌面端 browse 模式等）时
+			// 降级为应用内文件夹选择器，让用户在面板里直接选目录。
 			const pick = async () => {
 				setError(null);
 				try {
 					const picked = await api.pickDirectory();
 					if (picked) load(picked);
 				} catch (e) {
-					setError(e && e.message ? e.message : String(e));
+					openPicker();
 				}
 			};
+
+			// ---- 应用内文件夹选择器 ----
+			const parentOf = (p) => {
+				const t = String(p || "").replace(/[\\/]+$/, "");
+				if (!t) return null;
+				const i = Math.max(t.lastIndexOf("\\"), t.lastIndexOf("/"));
+				if (i <= 0) {
+					// Windows 盘符根（C:\）→ 返回 null（已在根）
+					if (/^[a-zA-Z]:$/.test(t)) return null;
+					return null;
+				}
+				const parent = t.slice(0, i);
+				return parent === "" ? null : parent;
+			};
+			const pickerLoad = useCallback(async (target) => {
+				if (!target) return;
+				setPickerLoading(true);
+				setPickerError(null);
+				try {
+					const r = await api.listFiles(target);
+					if (!r.ok) throw new Error(r.error || "list failed");
+					setPickerPath(r.path);
+					setPickerInput(r.path);
+					setPickerDirs(r.dirs || []);
+				} catch (e) {
+					setPickerError(e && e.message ? e.message : String(e));
+				} finally {
+					setPickerLoading(false);
+				}
+			}, [api]);
+			const openPicker = () => {
+				setPickerOpen(true);
+				setPickerError(null);
+				const start = path || anchor || (typeof process !== "undefined" && process.platform === "win32" ? "C:\\" : "/");
+				pickerLoad(start);
+			};
+			const closePicker = () => {
+				setPickerOpen(false);
+				setPickerDirs([]);
+				setPickerError(null);
+			};
+			const pickerChoose = () => {
+				if (!pickerPath) return;
+				closePicker();
+				load(pickerPath);
+			};
+			const pickerModal = pickerOpen
+				? jsx("div", {
+					className: "pfe-picker-overlay",
+					onMouseDown: (e) => {
+						if (e.target === e.currentTarget) closePicker();
+					},
+					children: jsxs("div", {
+						className: "pfe-picker",
+						role: "dialog",
+						"aria-label": "选择文件夹",
+						children: [
+							jsxs("div", {
+								className: "pfe-picker-head",
+								children: [
+									jsx("span", { className: "pfe-picker-title", children: "选择文件夹" }),
+									jsx("button", {
+										className: "pfe-picker-close",
+										"aria-label": "关闭",
+										onClick: closePicker,
+										children: "×"
+									})
+								]
+							}),
+							jsxs("div", {
+								className: "pfe-picker-path",
+								children: [
+									jsx(Input, {
+										className: "pfe-picker-input",
+										placeholder: "文件夹路径，如 C:\\MyProject",
+										value: pickerInput,
+										onChange: (e) => setPickerInput(e.target.value),
+										onKeyDown: (e) => {
+											if (e.key === "Enter") pickerLoad(pickerInput);
+										}
+									}),
+									jsx(Button, {
+										variant: "outline",
+										size: "sm",
+										onClick: () => pickerLoad(pickerInput),
+										children: "跳转"
+									}, "picker-go")
+								]
+							}),
+							pickerError
+								? jsx("div", { className: "pfe-picker-error", children: pickerError })
+								: null,
+							jsx("div", {
+								className: "pfe-picker-list",
+								children: pickerLoading
+									? jsx("div", { className: "pfe-picker-note", children: "加载中…" })
+									: pickerDirs.length === 0
+										? jsx("div", { className: "pfe-picker-note", children: "（此文件夹下没有子文件夹）" })
+										: pickerDirs.map((d) =>
+											jsx("button", {
+												className: "pfe-picker-row",
+												title: d.path,
+												onClick: () => pickerLoad(d.path),
+												children: [
+													jsx("span", { className: "dir-icon", children: jsx(IconFolderOpenOutline16, { size: 16 }) }),
+													jsx("span", { children: d.name })
+												]
+											}, d.path)
+										)
+							}),
+							jsxs("div", {
+								className: "pfe-picker-actions",
+								children: [
+									jsx(Button, {
+										variant: "ghost",
+										size: "sm",
+										onClick: () => {
+											const up = parentOf(pickerPath);
+											if (up) pickerLoad(up);
+										},
+										disabled: !parentOf(pickerPath),
+										title: "进入上一级目录",
+										children: "上级"
+									}, "picker-up"),
+									jsx(Button, {
+										variant: "outline",
+										size: "sm",
+										onClick: closePicker,
+										children: "取消"
+									}, "picker-cancel"),
+									jsx(Button, {
+										variant: "primary",
+										size: "sm",
+										onClick: pickerChoose,
+										disabled: !pickerPath,
+										children: "选择此文件夹"
+									}, "picker-ok")
+								]
+							})
+						]
+					})
+				})
+				: null;
 
 			// 有会话 → 在主区打开预览标签；无会话 → 交给系统默认应用打开。
 			const openFile = async (f) => {
@@ -694,11 +861,13 @@ window.__ModuleLoader__.load({
 				? dirs.length + " 个文件夹 · " + files.length + " 个文件"
 				: "";
 
-			return jsxs("div", {
-				className: "pfe-panel",
-				role: "dialog",
-				"aria-label": "项目文件浏览器",
+			return jsxs(Fragment, {
 				children: [
+					jsxs("div", {
+						className: "pfe-panel",
+						role: "dialog",
+						"aria-label": "项目文件浏览器",
+						children: [
 					jsxs("div", {
 						className: "pfe-panel-header",
 						children: [
@@ -797,23 +966,26 @@ window.__ModuleLoader__.load({
 							})
 						]
 					}),
-					jsxs("div", {
-						className: "pfe-footer",
-						children: [
-							jsx("span", { className: "pfe-footer-status", children: statusLine }),
-							jsx("div", { className: "pfe-footer-sep" }),
-							jsx(Button, {
-								variant: "primary",
-								size: "sm",
-								className: "pfe-open-btn",
-								icon: jsx(IconFolderOpenOutline16, { size: 16 }),
-								onClick: () => openHere(path),
-								disabled: opening || !path,
-								title: "在系统资源管理器中打开当前文件夹",
-								children: jsx("span", { className: "pfe-btn-label", children: opening ? "打开中…" : "在资源管理器中打开" })
-							}, "btn-open")
-						]
-					})
+						jsxs("div", {
+							className: "pfe-footer",
+							children: [
+								jsx("span", { className: "pfe-footer-status", children: statusLine }),
+								jsx("div", { className: "pfe-footer-sep" }),
+								jsx(Button, {
+									variant: "primary",
+									size: "sm",
+									className: "pfe-open-btn",
+									icon: jsx(IconFolderOpenOutline16, { size: 16 }),
+									onClick: () => openHere(path),
+									disabled: opening || !path,
+									title: "在系统资源管理器中打开当前文件夹",
+									children: jsx("span", { className: "pfe-btn-label", children: opening ? "打开中…" : "在资源管理器中打开" })
+								}, "btn-open")
+							]
+						})
+					]
+				}),
+					pickerModal
 				]
 			});
 		}

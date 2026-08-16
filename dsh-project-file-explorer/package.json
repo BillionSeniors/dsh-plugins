@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-project-file-explorer",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "DeepSeek Harness 项目文件浏览器：右侧停靠文件树 + 点击文件在主区打开预览标签（代码/文本/图片/音视频/PDF），新增工作区自动停靠，窄屏响应式抽屉。",
   "author": "亿哲学长 <https://github.com/BillionSeniors>",
   "type": "module",
